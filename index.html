@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Aluguel App</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Mono:wght@500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Sora',sans-serif;background:#0d1117;color:#e8e3dc;max-width:430px;margin:0 auto;min-height:100vh}
+:root{--accent:#e8a020;--accent2:#f97316;--bg:#0d1117;--card:#111621;--border:#1a1f2e;--border2:#252c3d;--muted:#6b7280;--muted2:#4b5563}
+.chip{display:inline-block;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);background:rgba(232,160,32,.08);padding:4px 12px;border-radius:99px;margin-bottom:12px;border:1px solid rgba(232,160,32,.2)}
+.h1{font-size:26px;font-weight:800;line-height:1.2}.h1 span{color:var(--accent)}
+.sub{font-size:13px;color:var(--muted);margin-top:4px;text-transform:capitalize}
+.page{display:none;padding:28px 20px 60px}.page.active{display:block}
+.back-btn{background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:0;margin-bottom:24px;display:flex;align-items:center;gap:6px;font-family:'Sora',sans-serif}
+.top-bar{padding:32px 20px 0}
+.progress-wrap{margin:20px 20px 0}
+.progress-track{height:6px;background:var(--border);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px;transition:width .6s ease}
+.progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted2);margin-top:8px}
+.list{padding:16px 16px 0}
+.edificio-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);padding:8px 4px 6px;font-weight:700}
+.card{background:var(--card);border-radius:18px;padding:15px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;border:1px solid var(--border)}
+.card.lido{border-color:rgba(232,160,32,.18)}
+.card-accent{position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--border);border-radius:18px 0 0 18px}
+.card.lido .card-accent{background:linear-gradient(180deg,var(--accent),var(--accent2))}
+.card-icon{width:44px;height:44px;border-radius:12px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;cursor:pointer}
+.card.lido .card-icon{background:rgba(232,160,32,.1)}
+.card-info{flex:1;min-width:0;cursor:pointer}
+.card-apto{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:2px}
+.card-nome{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-sub{font-size:12px;color:var(--muted2);margin-top:2px}
+.card-right{display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex-shrink:0}
+.badge{font-size:10px;font-weight:700;letter-spacing:1px;padding:4px 10px;border-radius:99px;background:var(--border);color:#374151;border:1px solid var(--border);white-space:nowrap;cursor:pointer}
+.badge.lido{background:rgba(232,160,32,.1);color:var(--accent);border-color:rgba(232,160,32,.2)}
+.edit-btn{background:none;border:none;font-size:16px;cursor:pointer;padding:0}
+.bottom-btns{padding:0 16px 32px;display:flex;flex-direction:column;gap:10px}
+.btn-virar{width:100%;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;font-family:'Sora',sans-serif}
+.btn-config{width:100%;background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:13px;font-size:14px;font-weight:700;color:var(--accent);cursor:pointer;font-family:'Sora',sans-serif}
+.input-label{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;display:block}
+.input-std{width:100%;background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:14px 16px;font-size:15px;color:#e8e3dc;outline:none;font-family:'Sora',sans-serif;margin-bottom:14px}
+.input-num{width:100%;background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:16px 18px;font-size:24px;font-weight:800;color:#e8e3dc;outline:none;font-family:'DM Mono',monospace;letter-spacing:3px;margin-bottom:14px}
+.info-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:14px}
+.info-box.hl{border-color:rgba(232,160,32,.25);background:rgba(232,160,32,.04)}
+.info-val{font-weight:700;font-family:'DM Mono',monospace}
+.info-gas{color:var(--accent);font-weight:800}
+.btn-main{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:800;color:#0d1117;cursor:pointer;font-family:'Sora',sans-serif}
+.btn-main:disabled{opacity:.35;cursor:not-allowed}
+.btn-ghost{width:100%;background:transparent;border:1px solid var(--border2);border-radius:14px;padding:14px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;margin-top:10px;font-family:'Sora',sans-serif}
+.btn-pdf{width:100%;background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:15px;font-size:15px;font-weight:700;color:#e8e3dc;cursor:pointer;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Sora',sans-serif}
+.btn-whats{width:100%;background:#25D366;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:800;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'Sora',sans-serif;flex-direction:column}
+.recibo-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:22px;margin-bottom:16px}
+.recibo-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.recibo-nome{font-size:18px;font-weight:800;margin-bottom:2px}
+.recibo-mes{font-size:12px;color:var(--muted);text-transform:capitalize}
+.apto-badge{background:rgba(232,160,32,.08);color:var(--accent);font-size:13px;font-weight:800;padding:6px 14px;border-radius:10px;border:1px solid rgba(232,160,32,.2)}
+.linha{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:8px}
+.linha .v{color:#e8e3dc;font-weight:600}.linha .v-gas{color:var(--accent);font-weight:700}
+.divisor{height:1px;background:var(--border);margin:12px 0}
+.total-row{display:flex;justify-content:space-between;font-size:20px;font-weight:800}
+.total-val{color:var(--accent)}
+.leit-info{background:var(--bg);border-radius:10px;padding:10px 14px;margin-top:12px;font-size:12px;color:var(--muted2);display:flex;justify-content:space-between}
+.edit-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px}
+.edit-section{font-size:11px;color:var(--muted);margin-bottom:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:flex-end;justify-content:center;z-index:100}
+.modal.open{display:flex}
+.modal-box{background:var(--card);border-radius:20px 20px 0 0;padding:28px 20px 48px;width:100%;max-width:430px}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:10px}
+.modal-text{font-size:14px;color:var(--muted);margin-bottom:24px;line-height:1.7}
+.toast{position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:#111621;border:1px solid var(--border2);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;color:#e8e3dc;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.spinner{width:32px;height:32px;border:3px solid rgba(232,160,32,.2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.foto-btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.foto-btn-label{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:20px 10px;font-size:13px;font-weight:700;color:#e8e3dc;cursor:pointer;font-family:'Sora',sans-serif;text-align:center}
+.foto-btn-label.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#0d1117}
+.foto-btn-label span.ico{font-size:28px}
+.foto-preview{display:none;margin-bottom:16px;border-radius:16px;overflow:hidden;position:relative}
+.foto-preview img{width:100%;height:180px;object-fit:cover;display:block}
+.foto-preview-loading{position:absolute;inset:0;background:rgba(13,17,23,.8);display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+.foto-preview-badge{position:absolute;top:10px;right:10px;background:#10b981;color:#fff;font-size:10px;font-weight:800;padding:4px 12px;border-radius:99px;display:none}
+/* CONFIG */
+.config-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px}
+.tarifa-display{background:var(--bg);border:1px solid rgba(232,160,32,.3);border-radius:12px;padding:16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:0}
+.tarifa-val{font-size:24px;font-weight:800;color:var(--accent);font-family:'DM Mono',monospace}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="page-home" class="page active">
+  <div class="top-bar">
+    <div class="chip">Gestão de Aluguel</div>
+    <div class="h1">Leituras de <span>Gás</span></div>
+    <div class="sub" id="mes-label"></div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-track"><div class="progress-fill" id="pfill" style="width:0%"></div></div>
+    <div class="progress-label"><span id="ptxt"></span><span id="pst"></span></div>
+  </div>
+  <div class="list" id="lista"></div>
+  <div class="bottom-btns">
+    <button class="btn-config" onclick="ir('page-config')">⚙️ Configurações — Tarifa do m³: R$ <span id="tarifa-label">--</span></button>
+    <button class="btn-virar" onclick="abrirModalVirar()">🔄 Virar mês — atualizar leituras anteriores</button>
+  </div>
+</div>
+
+<!-- LEITURA -->
+<div id="page-leitura" class="page">
+  <button class="back-btn" onclick="irHome()">← Voltar</button>
+  <div class="chip" id="lchip"></div>
+  <div class="h1" style="font-size:22px;margin-bottom:4px" id="lnome"></div>
+  <div class="sub" style="margin-bottom:20px" id="ltarifa"></div>
+
+  <div class="foto-preview" id="foto-preview">
+    <img id="foto-img" src=""/>
+    <div class="foto-preview-loading" id="foto-loading">
+      <div class="spinner"></div>
+      <div style="font-size:13px;color:var(--accent);font-weight:700">Lendo com IA...</div>
+    </div>
+    <div class="foto-preview-badge" id="foto-badge">IA ✓</div>
+  </div>
+
+  <div class="foto-btns">
+    <label class="foto-btn-label primary" for="inp-camera">
+      <span class="ico">📷</span>Câmera
+    </label>
+    <label class="foto-btn-label" for="inp-galeria">
+      <span class="ico">🖼️</span>Fototeca
+    </label>
+  </div>
+  <input type="file" id="inp-camera" accept="image/*" capture="environment" style="display:none" onchange="processarFoto(event)"/>
+  <input type="file" id="inp-galeria" accept="image/*" style="display:none" onchange="processarFoto(event)"/>
+
+  <label class="input-label">Leitura Atual (m³)</label>
+  <input class="input-num" type="number" step="0.001" id="inp-leitura" placeholder="000,000" oninput="atualizarConsumo()"/>
+  <div class="info-box">
+    <span style="color:var(--muted)">Leitura anterior</span>
+    <span class="info-val" id="lant-val"></span>
+  </div>
+  <div class="info-box hl" id="box-consumo" style="display:none">
+    <span style="color:var(--muted)">Consumo → Gás</span>
+    <span class="info-gas" id="val-consumo"></span>
+  </div>
+  <button class="btn-main" id="btn-ver" onclick="salvarLeitura()" disabled>Ver Recibo →</button>
+  <button class="btn-ghost" onclick="irHome()">Cancelar</button>
+</div>
+
+<!-- RECIBO -->
+<div id="page-recibo" class="page">
+  <button class="back-btn" onclick="irHome()">← Voltar</button>
+  <div class="chip" id="rchip"></div>
+  <div class="h1" style="font-size:22px;margin-bottom:24px">Cobrança <span>Gerada</span></div>
+  <div class="recibo-card">
+    <div class="recibo-head">
+      <div><div class="recibo-nome" id="rnome"></div><div class="recibo-mes" id="rmes"></div></div>
+      <div class="apto-badge" id="rapto"></div>
+    </div>
+    <div class="linha"><span>Aluguel</span><span class="v" id="r-aluguel"></span></div>
+    <div class="linha"><span>Luz</span><span class="v" id="r-luz"></span></div>
+    <div class="linha"><span>Água/Esgoto</span><span class="v" id="r-agua"></span></div>
+    <div class="linha"><span>IPTU</span><span class="v" id="r-iptu"></span></div>
+    <div class="linha"><span>Limpeza</span><span class="v" id="r-limpeza"></span></div>
+    <div class="divisor"></div>
+    <div class="linha"><span id="r-gas-label">🔥 Gás</span><span class="v-gas" id="r-gas"></span></div>
+    <div class="leit-info"><span id="r-la"></span><span id="r-lu"></span></div>
+    <div class="divisor"></div>
+    <div class="total-row"><span>TOTAL</span><span class="total-val" id="r-total"></span></div>
+  </div>
+  <button class="btn-whats" id="btn-enviar" onclick="enviarRecibo()">
+    <span style="font-size:16px;font-weight:800">💬 Enviar Recibo pelo WhatsApp</span>
+    <span style="font-size:11px;font-weight:600;opacity:.85">Baixa o PDF e abre o WhatsApp</span>
+  </button>
+  <button class="btn-pdf" id="btn-pdf" onclick="gerarPDF(false)">📄 Só baixar o PDF</button>
+  <button class="btn-ghost" onclick="abrirLeitura(aptoAtual)">✏️ Corrigir leitura</button>
+  <button class="btn-ghost" onclick="irHome()">← Lista de aptos</button>
+</div>
+
+<!-- EDITAR -->
+<div id="page-editar" class="page">
+  <button class="back-btn" onclick="irHome()">← Voltar</button>
+  <div class="chip" id="echip"></div>
+  <div class="h1" style="font-size:22px;margin-bottom:24px">Editar <span>Cadastro</span></div>
+  <div class="edit-card">
+    <div class="edit-section">Inquilino</div>
+    <label class="input-label">Nome completo</label><input class="input-std" id="e-nome" type="text"/>
+    <label class="input-label">Telefone (com DDD, sem +55)</label><input class="input-std" id="e-tel" type="tel"/>
+  </div>
+  <div class="edit-card">
+    <div class="edit-section">Valores Fixos (R$)</div>
+    <label class="input-label">Aluguel</label><input class="input-std" id="e-aluguel" type="number"/>
+    <label class="input-label">Luz</label><input class="input-std" id="e-luz" type="number"/>
+    <label class="input-label">Água/Esgoto</label><input class="input-std" id="e-agua" type="number"/>
+    <label class="input-label">IPTU</label><input class="input-std" id="e-iptu" type="number"/>
+    <label class="input-label">Limpeza</label><input class="input-std" id="e-limpeza" type="number"/>
+  </div>
+  <div class="edit-card">
+    <div class="edit-section">Leitura Anterior (m³)</div>
+    <label class="input-label">Valor</label><input class="input-std" id="e-lant" type="number" step="0.001"/>
+  </div>
+  <button class="btn-main" onclick="salvarEdicao()">Salvar Alterações ✓</button>
+  <button class="btn-ghost" onclick="irHome()">Cancelar</button>
+</div>
+
+<!-- CONFIG -->
+<div id="page-config" class="page">
+  <button class="back-btn" onclick="irHome()">← Voltar</button>
+  <div class="chip">Configurações</div>
+  <div class="h1" style="font-size:22px;margin-bottom:24px">Tarifa do <span>Gás</span></div>
+
+  <div class="config-card">
+    <div class="edit-section">Tarifa atual do m³</div>
+    <div class="tarifa-display">
+      <div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Valor por m³</div>
+        <div class="tarifa-val" id="tarifa-atual-display">R$ --</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);text-align:right">Usado em<br>todos os aptos</div>
+    </div>
+  </div>
+
+  <div class="edit-card">
+    <div class="edit-section">Atualizar tarifa</div>
+    <label class="input-label">Nova tarifa do m³ (R$)</label>
+    <input class="input-std" id="inp-tarifa" type="number" step="0.01" placeholder="Ex: 29.00"/>
+    <div style="font-size:12px;color:var(--muted);margin-top:-8px;margin-bottom:14px">
+      Atualize todo mês quando a tarifa mudar
+    </div>
+  </div>
+
+  <button class="btn-main" onclick="salvarTarifa()">Salvar Tarifa ✓</button>
+  <button class="btn-ghost" onclick="irHome()">Cancelar</button>
+</div>
+
+<!-- MODAL VIRAR MÊS -->
+<div class="modal" id="modal-virar">
+  <div class="modal-box">
+    <div class="modal-title">Virar o mês?</div>
+    <div class="modal-text">As leituras atuais viram as anteriores do próximo mês. Os campos serão zerados.</div>
+    <button class="btn-main" onclick="virarMes()">Sim, virar o mês</button>
+    <button class="btn-ghost" onclick="fecharModal()">Cancelar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SK="aluguel_v4", SK_TARIFA="aluguel_tarifa";
+const PADRAO=[
+  // Edifício Pedro Luza 02
+  {id:1,edificio:"Pedro Luza 02",apto:"101",inquilino:"Kerby",          tel:"",aluguel:1200,luz:15,agua:250,iptu:60,limpeza:75, lant:520.551,latu:null},
+  {id:2,edificio:"Pedro Luza 02",apto:"102",inquilino:"Altemir",         tel:"",aluguel:1250,luz:15,agua:200,iptu:60,limpeza:50, lant:382.504,latu:null},
+  {id:3,edificio:"Pedro Luza 02",apto:"201",inquilino:"Bianka da Silva Berrido",tel:"",aluguel:1400,luz:15,agua:200,iptu:62,limpeza:150,lant:379.416,latu:null},
+  {id:4,edificio:"Pedro Luza 02",apto:"202",inquilino:"Inquilino 202",   tel:"",aluguel:1200,luz:15,agua:200,iptu:60,limpeza:50, lant:348.662,latu:null},
+  {id:5,edificio:"Pedro Luza 02",apto:"301",inquilino:"Inquilino 301",   tel:"",aluguel:1500,luz:15,agua:200,iptu:62,limpeza:100,lant:120.497,latu:null},
+  {id:6,edificio:"Pedro Luza 02",apto:"302",inquilino:"Inquilino 302",   tel:"",aluguel:1300,luz:15,agua:200,iptu:60,limpeza:80, lant:259.506,latu:null},
+  // Edifício Pedro Luza 01
+  {id:7,edificio:"Pedro Luza 01",apto:"201",inquilino:"Inquilino 201",   tel:"",aluguel:1200,luz:15,agua:200,iptu:60,limpeza:50, lant:0.000,latu:null},
+  {id:8,edificio:"Pedro Luza 01",apto:"202",inquilino:"Inquilino 202",   tel:"",aluguel:1200,luz:15,agua:200,iptu:60,limpeza:50, lant:0.000,latu:null},
+  {id:9,edificio:"Pedro Luza 01",apto:"203",inquilino:"Inquilino 203",   tel:"",aluguel:1200,luz:15,agua:200,iptu:60,limpeza:50, lant:0.000,latu:null},
+  {id:10,edificio:"Pedro Luza 01",apto:"204",inquilino:"Inquilino 204",  tel:"",aluguel:1200,luz:15,agua:200,iptu:60,limpeza:50, lant:0.000,latu:null},
+  // Edifício Pedro Luza 03
+  {id:11,edificio:"Pedro Luza 03",apto:"101",inquilino:"Inquilino 101",  tel:"",aluguel:1200,luz:15,agua:200,iptu:60,limpeza:50, lant:0.000,latu:null},
+  {id:12,edificio:"Pedro Luza 03",apto:"102",inquilino:"Inquilino 102",  tel:"",aluguel:1200,luz:15,agua:200,iptu:60,limpeza:50, lant:0.000,latu:null},
+];
+
+let aptos=[], aptoAtual=null, TARIFA=29.00;
+
+function load(){try{const r=localStorage.getItem(SK);if(r)return JSON.parse(r)}catch{}return JSON.parse(JSON.stringify(PADRAO))}
+function loadTarifa(){try{const r=localStorage.getItem(SK_TARIFA);if(r)return parseFloat(r)}catch{}return 29.00}
+function save(){try{localStorage.setItem(SK,JSON.stringify(aptos))}catch{}}
+function saveTarifa(){try{localStorage.setItem(SK_TARIFA,String(TARIFA))}catch{}}
+
+const fmt=v=>Number(v).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const fmtN=v=>Number(v).toLocaleString("pt-BR",{minimumFractionDigits:3,maximumFractionDigits:3});
+const mes=()=>new Date().toLocaleString("pt-BR",{month:"long",year:"numeric"});
+const hoje=()=>new Date().toLocaleDateString("pt-BR",{day:"numeric",month:"long",year:"numeric"});
+function calc(a){const c=parseFloat((a.latu-a.lant).toFixed(3)),g=Math.round(c*TARIFA),t=a.aluguel+a.luz+a.agua+a.iptu+a.limpeza+g;return{consumo:c,gas:g,total:t}}
+function ir(id){document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));document.getElementById(id).classList.add("active")}
+function irHome(){ir("page-home");renderHome()}
+function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),3000)}
+
+function renderHome(){
+  document.getElementById("mes-label").textContent=mes();
+  document.getElementById("tarifa-label").textContent=fmt(TARIFA).replace("R$\u00a0","").replace("R$","").trim();
+  const lidos=aptos.filter(a=>a.latu!==null).length,tot=aptos.length;
+  document.getElementById("pfill").style.width=(tot>0?lidos/tot*100:0)+"%";
+  document.getElementById("ptxt").textContent=`${lidos} de ${tot} aptos lidos`;
+  const st=document.getElementById("pst");
+  st.textContent=lidos===tot&&tot>0?"✓ Todos prontos!":tot-lidos+" pendentes";
+  st.style.color=lidos===tot&&tot>0?"var(--accent)":"var(--muted2)";
+
+  const lista=document.getElementById("lista");lista.innerHTML="";
+  const edificios=[...new Set(aptos.map(a=>a.edificio))];
+  edificios.forEach(ed=>{
+    const lbl=document.createElement("div");
+    lbl.className="edificio-label";lbl.textContent="🏢 "+ed;
+    lista.appendChild(lbl);
+    aptos.filter(a=>a.edificio===ed).forEach(a=>{
+      const lido=a.latu!==null;
+      const div=document.createElement("div");div.className="card"+(lido?" lido":"");
+      div.innerHTML=`<div class="card-accent"></div>
+        <div class="card-icon">${lido?"✅":"🏠"}</div>
+        <div class="card-info"><div class="card-apto">Apto ${a.apto}</div><div class="card-nome">${a.inquilino}</div><div class="card-sub">${fmt(a.aluguel)} · ant: ${fmtN(a.lant)} m³</div></div>
+        <div class="card-right"><div class="badge ${lido?"lido":""}">${lido?"LIDO":"PENDENTE"}</div><button class="edit-btn">⚙️</button></div>`;
+      const go=()=>lido?abrirRecibo(a):abrirLeitura(a);
+      div.querySelector(".card-icon").onclick=go;div.querySelector(".card-info").onclick=go;div.querySelector(".badge").onclick=go;
+      div.querySelector(".edit-btn").onclick=e=>{e.stopPropagation();abrirEditar(a)};
+      lista.appendChild(div);
+    });
+  });
+}
+
+// CONFIG
+function salvarTarifa(){
+  const v=parseFloat(document.getElementById("inp-tarifa").value);
+  if(isNaN(v)||v<=0){toast("⚠️ Digite um valor válido");return;}
+  TARIFA=v;saveTarifa();
+  toast("✓ Tarifa atualizada: "+fmt(TARIFA)+"/m³");
+  irHome();
+}
+
+// LEITURA
+function abrirLeitura(a){
+  aptoAtual=a;ir("page-leitura");
+  document.getElementById("lchip").textContent=a.edificio+" · Apto "+a.apto;
+  document.getElementById("lnome").textContent=a.inquilino;
+  document.getElementById("ltarifa").textContent="Tarifa: "+fmt(TARIFA)+"/m³";
+  document.getElementById("lant-val").textContent=fmtN(a.lant)+" m³";
+  document.getElementById("inp-leitura").value=a.latu!==null?a.latu:"";
+  document.getElementById("foto-preview").style.display="none";
+  document.getElementById("foto-loading").style.display="none";
+  document.getElementById("foto-badge").style.display="none";
+  document.getElementById("box-consumo").style.display="none";
+  document.getElementById("btn-ver").disabled=true;
+  document.getElementById("inp-camera").value="";
+  document.getElementById("inp-galeria").value="";
+  atualizarConsumo();
+}
+
+async function processarFoto(event){
+  const file=event.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    const b64=e.target.result;
+    document.getElementById("foto-img").src=b64;
+    document.getElementById("foto-preview").style.display="block";
+    document.getElementById("foto-loading").style.display="flex";
+    document.getElementById("foto-badge").style.display="none";
+    try{
+      const leitura=await lerMedidor(b64.split(",")[1]);
+      document.getElementById("foto-loading").style.display="none";
+      document.getElementById("foto-badge").style.display="block";
+      if(leitura!==null){document.getElementById("inp-leitura").value=leitura;atualizarConsumo();toast("✓ Lido: "+fmtN(leitura)+" m³");}
+      else toast("⚠️ Não consegui ler. Digite manualmente.");
+    }catch{document.getElementById("foto-loading").style.display="none";toast("⚠️ Erro ao ler. Digite manualmente.");}
+    event.target.value="";
+  };
+  reader.readAsDataURL(file);
+}
+
+async function lerMedidor(b64){
+  const r=await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:100,messages:[{role:"user",content:[
+      {type:"image",source:{type:"base64",media_type:"image/jpeg",data:b64}},
+      {type:"text",text:"Foto de medidor de gás brasileiro LAO G-1. Display tem dígitos pretos (inteiros) e vermelhos (decimais) separados por vírgula. Ex: 00520 preto + 551 vermelho = 520.551. Retorne APENAS o número decimal com ponto. Ex: 520.551"}
+    ]}]})
+  });
+  const d=await r.json();const txt=d.content?.[0]?.text?.trim();
+  if(!txt)return null;const n=parseFloat(txt.replace(",","."));return isNaN(n)?null:n;
+}
+
+function atualizarConsumo(){
+  const v=parseFloat(document.getElementById("inp-leitura").value);
+  const ok=!isNaN(v)&&v>aptoAtual.lant;
+  document.getElementById("box-consumo").style.display=ok?"flex":"none";
+  document.getElementById("btn-ver").disabled=!ok;
+  if(ok){const c=(v-aptoAtual.lant).toFixed(3);document.getElementById("val-consumo").textContent=`${c} m³ → ${fmt(parseFloat(c)*TARIFA)}`}
+}
+
+function salvarLeitura(){
+  const v=parseFloat(document.getElementById("inp-leitura").value);
+  if(isNaN(v)||v<=aptoAtual.lant)return;
+  aptos=aptos.map(a=>a.id===aptoAtual.id?{...a,latu:v}:a);
+  aptoAtual=aptos.find(a=>a.id===aptoAtual.id);
+  save();abrirRecibo(aptoAtual);
+}
+
+function abrirRecibo(a){
+  aptoAtual=a;const{consumo,gas,total}=calc(a);ir("page-recibo");
+  document.getElementById("rchip").textContent="Recibo — "+mes();
+  document.getElementById("rnome").textContent=a.inquilino;
+  document.getElementById("rmes").textContent=a.edificio+" · "+mes();
+  document.getElementById("rapto").textContent="Apto "+a.apto;
+  document.getElementById("r-aluguel").textContent=fmt(a.aluguel);
+  document.getElementById("r-luz").textContent=fmt(a.luz);
+  document.getElementById("r-agua").textContent=fmt(a.agua);
+  document.getElementById("r-iptu").textContent=fmt(a.iptu);
+  document.getElementById("r-limpeza").textContent=fmt(a.limpeza);
+  document.getElementById("r-gas-label").textContent=`🔥 Gás (${fmtN(consumo)} m³ × ${fmt(TARIFA)})`;
+  document.getElementById("r-gas").textContent=fmt(gas);
+  document.getElementById("r-la").textContent="Anterior: "+fmtN(a.lant)+" m³";
+  document.getElementById("r-lu").textContent="Atual: "+fmtN(a.latu)+" m³";
+  document.getElementById("r-total").textContent=fmt(total);
+}
+
+function enviarWhats(){
+  const a=aptoAtual,{consumo,gas,total}=calc(a);
+  const msg=encodeURIComponent(`Olá ${a.inquilino.split(" ")[0]}! 👋\n\nSegue a cobrança de *${mes()}*:\n\n🏠 *${a.edificio} — Apto ${a.apto}*\n💵 Aluguel: ${fmt(a.aluguel)}\n💡 Luz: ${fmt(a.luz)}\n💧 Água/Esgoto: ${fmt(a.agua)}\n🏛️ IPTU: ${fmt(a.iptu)}\n🧹 Limpeza: ${fmt(a.limpeza)}\n🔥 Gás (${fmtN(consumo)} m³): ${fmt(gas)}\n\n✅ *TOTAL: ${fmt(total)}*`);
+  window.open(a.tel?`https://wa.me/55${a.tel}?text=${msg}`:`https://wa.me/?text=${msg}`,"_blank");
+}
+
+async function enviarRecibo(){
+  const btn=document.getElementById("btn-enviar");
+  btn.disabled=true;
+  btn.querySelector("span:first-child").textContent="⏳ Gerando PDF...";
+  try{
+    await gerarPDF(true);
+    setTimeout(()=>enviarWhats(),600);
+  }catch(e){toast("Erro: "+e.message);}
+  finally{btn.disabled=false;btn.querySelector("span:first-child").textContent="💬 Enviar Recibo pelo WhatsApp";}
+}
+
+function porExtenso(v){
+  v=Math.round(v);if(v===0)return"zero";
+  const un=["","um","dois","três","quatro","cinco","seis","sete","oito","nove","dez","onze","doze","treze","quatorze","quinze","dezesseis","dezessete","dezoito","dezenove"];
+  const dz=["","","vinte","trinta","quarenta","cinquenta","sessenta","setenta","oitenta","noventa"];
+  const ct=["","cem","duzentos","trezentos","quatrocentos","quinhentos","seiscentos","setecentos","oitocentos","novecentos"];
+  let r="";const mil=Math.floor(v/1000),resto=v%1000,cen=Math.floor(resto/100),dez=Math.floor((resto%100)/10),uni=resto%10;
+  if(mil>0)r+=mil===1?"um mil":un[mil]+" mil";
+  if(cen>0){if(r)r+=" e ";r+=(resto%100===0&&cen===1)?"cem":ct[cen];}
+  if(dez>0){if(r)r+=" e ";r+=dez===1?un[10+uni]:dz[dez];}
+  if(uni>0&&dez!==1){if(r)r+=" e ";r+=un[uni];}
+  return r;
+}
+
+function gerarPDF(silencioso=false){
+  return new Promise((resolve,reject)=>{
+    const btn=document.getElementById("btn-pdf");
+    if(!silencioso){btn.disabled=true;btn.innerHTML="⏳ Gerando...";}
+    try{
+      if(typeof window.jspdf==="undefined"){toast("⚠️ jsPDF não carregou. Recarregue a página.");reject(new Error("jsPDF não carregou"));return;}
+      const a=aptoAtual,{consumo,gas,total}=calc(a);
+      const{jsPDF}=window.jspdf,doc=new jsPDF({unit:"mm",format:"a4"});
+      const mg=20,cw=170;let y=20;
+      doc.setFillColor(50,50,50);doc.rect(mg,y,cw,12,"F");
+      doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(255,255,255);
+      doc.text("COBRANÇA/RECIBO ALUGUEL",mg+4,y+8);doc.text("APTO: "+a.apto,mg+cw-30,y+8);y+=16;
+      const cV=mg+cw-50;
+      doc.setFillColor(220,220,220);doc.rect(mg,y,cw,8,"F");
+      doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(0,0,0);
+      doc.text("DESCRIÇÃO",mg+4,y+5.5);doc.text("VALOR (R$)",cV+4,y+5.5);y+=8;
+      const itens=[["ALUGUEL",a.aluguel],["LUZ",a.luz],["ÁGUA/ESGOTO",a.agua],["IPTU",a.iptu],["LIMPEZA",a.limpeza],["GÁS",gas]];
+      const tY=y;
+      itens.forEach(([d,v],i)=>{
+        if(i%2===0){doc.setFillColor(248,248,248);doc.rect(mg,y,cw,7,"F");}
+        doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(50,50,50);
+        doc.text(d,mg+4,y+5);doc.text(v.toLocaleString("pt-BR",{minimumFractionDigits:2}),mg+cw-4,y+5,{align:"right"});
+        doc.setDrawColor(220,220,220);doc.line(mg,y,mg+cw,y);doc.line(cV,y,cV,y+7);y+=7;
+      });
+      doc.setDrawColor(220,220,220);doc.line(mg,y,mg+cw,y);
+      doc.setDrawColor(50,50,50);doc.rect(mg,tY-8,cw,itens.length*7+8);y+=2;
+      doc.setFillColor(50,50,50);doc.rect(mg,y,cw,9,"F");
+      doc.setFont("helvetica","bold");doc.setFontSize(10);doc.setTextColor(255,255,255);
+      doc.text("TOTAL",mg+4,y+6.5);doc.text(total.toLocaleString("pt-BR",{minimumFractionDigits:2}),mg+cw-4,y+6.5,{align:"right"});y+=16;
+      doc.setFont("helvetica","normal");doc.setFontSize(10);doc.setTextColor(0,0,0);
+      doc.text("Recebemos de ",mg,y);let x=mg+doc.getTextWidth("Recebemos de ");
+      doc.setFont("helvetica","bold");doc.text(a.inquilino,x,y);x+=doc.getTextWidth(a.inquilino);
+      doc.setFont("helvetica","normal");doc.text(" a quantia de",x,y);
+      doc.setFont("helvetica","bold");doc.text("R$  "+total.toLocaleString("pt-BR",{minimumFractionDigits:2}),mg+cw,y,{align:"right"});y+=6;
+      const re=Math.floor(total),ct2=Math.round((total-re)*100);
+      let ext="("+porExtenso(re)+" reais"+(ct2>0?" e "+porExtenso(ct2)+" centavos":"")+")";
+      doc.setFont("helvetica","normal");doc.setFontSize(9.5);
+      const le=doc.splitTextToSize(ext,cw);doc.text(le,mg,y);y+=le.length*5.5;
+      const lr=doc.splitTextToSize("referente ao pagamento de aluguel e condomínio do mês de "+mes()+".",cw);
+      doc.text(lr,mg,y);y+=lr.length*5.5+8;
+      doc.text("Chapecó, "+hoje()+".",mg,y);y+=20;
+      doc.setDrawColor(50,50,50);doc.line(mg,y,mg+80,y);y+=5;
+      doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(120,120,120);
+      doc.text("Assinatura",mg+25,y);y+=16;
+      doc.setFillColor(245,245,245);doc.rect(mg,y,cw,14,"F");
+      doc.setDrawColor(220,220,220);doc.rect(mg,y,cw,14);doc.setFontSize(8);
+      doc.text("Ant: "+fmtN(a.lant)+" m³",mg+4,y+7.5);
+      doc.text("Atual: "+fmtN(a.latu)+" m³",mg+55,y+7.5);
+      doc.text("Consumo: "+fmtN(consumo)+" m³",mg+110,y+7.5);
+      // Gera e baixa via blob
+      const blob=doc.output("blob");
+      const url=URL.createObjectURL(blob);
+      const lnk=document.createElement("a");
+      lnk.href=url;lnk.download="Recibo_"+a.edificio.replace(/ /g,"_")+"_Apto"+a.apto+"_"+mes()+".pdf";
+      document.body.appendChild(lnk);lnk.click();document.body.removeChild(lnk);
+      setTimeout(()=>URL.revokeObjectURL(url),3000);
+      if(!silencioso)toast("✓ PDF baixado!");
+      resolve();
+    }catch(err){toast("Erro PDF: "+err.message);reject(err);}
+    finally{if(!silencioso){btn.disabled=false;btn.innerHTML="📄 Só baixar o PDF";}}
+  });
+}
+
+function abrirEditar(a){
+  aptoAtual=a;ir("page-editar");
+  document.getElementById("echip").textContent=a.edificio+" · Apto "+a.apto;
+  document.getElementById("e-nome").value=a.inquilino;document.getElementById("e-tel").value=a.tel;
+  document.getElementById("e-aluguel").value=a.aluguel;document.getElementById("e-luz").value=a.luz;
+  document.getElementById("e-agua").value=a.agua;document.getElementById("e-iptu").value=a.iptu;
+  document.getElementById("e-limpeza").value=a.limpeza;document.getElementById("e-lant").value=a.lant;
+}
+function salvarEdicao(){
+  aptos=aptos.map(a=>a.id!==aptoAtual.id?a:{...a,
+    inquilino:document.getElementById("e-nome").value,tel:document.getElementById("e-tel").value,
+    aluguel:parseFloat(document.getElementById("e-aluguel").value)||0,
+    luz:parseFloat(document.getElementById("e-luz").value)||0,
+    agua:parseFloat(document.getElementById("e-agua").value)||0,
+    iptu:parseFloat(document.getElementById("e-iptu").value)||0,
+    limpeza:parseFloat(document.getElementById("e-limpeza").value)||0,
+    lant:parseFloat(document.getElementById("e-lant").value)||0,
+  });
+  save();toast("✓ Salvo!");irHome();
+}
+
+function abrirConfig(){
+  ir("page-config");
+  document.getElementById("tarifa-atual-display").textContent=fmt(TARIFA);
+  document.getElementById("inp-tarifa").value=TARIFA;
+}
+
+// Sobrescreve o onclick do botão config
+document.querySelector(".btn-config").onclick=abrirConfig;
+
+function abrirModalVirar(){document.getElementById("modal-virar").classList.add("open")}
+function fecharModal(){document.getElementById("modal-virar").classList.remove("open")}
+function virarMes(){aptos=aptos.map(a=>({...a,lant:a.latu!==null?a.latu:a.lant,latu:null}));save();fecharModal();renderHome();toast("✓ Mês virado!")}
+
+aptos=load();TARIFA=loadTarifa();renderHome();
+</script>
+</body>
+</html>
